@@ -4,7 +4,12 @@ const Schema = mongoose.Schema
 const ObjectId = mongoose.Types.ObjectId;
 
 const TaskSchema = new Schema({
-    Task: {type: String}
+    Task: {type: String},
+    isCompleted: {
+        type: Boolean,
+        default: false
+    }
+
 },{timestamps: true}); 
 
 const TaskModel = mongoose.model("Task" , TaskSchema);
