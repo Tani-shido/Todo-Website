@@ -20,17 +20,11 @@ async function Main(){
 
         app.post("/create", async (req,res) => {
             const inputVal = req.body.input;
-
             if(!inputVal || inputVal.trim() === ""){
-                return res.status(400).json({
-                    message: "Input is empty or wrong"
-                });
+                return res.status(400).json({ message: "Input is empty or wrong" });
             }
             try{
-                const todoTask = await TaskModel.create({
-                    Task: inputVal,
-                    isCompleted: false // This is correct, new tasks are not complete
-                });
+                const todoTask = await TaskModel.create({ Task: inputVal });
                 return res.status(200).json(todoTask);
             }catch(error){
                 console.error("Database error:", error);
@@ -40,8 +34,8 @@ async function Main(){
 
         app.get("/todos", async (req, res) =>{
             try{
-                // Sort by creation date to show newest first
-                const show = await TaskModel.find({}).sort({ createdAt: -1 });
+                // Sort by createdAt ASCENDING (1) for oldest first
+                const show = await TaskModel.find({}).sort({ createdAt: 1 });
                 res.status(200).json(show);
             }catch (error){
                 console.error("Database error:", error);
@@ -49,17 +43,13 @@ async function Main(){
             }
         });
 
-        // --- CHANGED: Improved Update Route ---
         app.put("/update/:id", async(req,res) => {
             const taskId = req.params.id;
-            const updatedData = req.body; // e.g., { isCompleted: true }
+            const updatedData = req.body;
             try{
-                // { new: true } ensures the updated document is returned
                 const updatingTask = await TaskModel.findByIdAndUpdate(taskId, updatedData, { new: true });
                 if(!updatingTask){
-                    return res.status(404).json({
-                        message: "Task not found"
-                    });
+                    return res.status(404).json({ message: "Task not found" });
                 }
                 res.status(200).json(updatingTask);
             }
@@ -69,27 +59,22 @@ async function Main(){
             }
         });
 
-        // --- CHANGED: Improved Delete Route ---
         app.delete("/delete/:id" , async (req, res) => {
             const taskId = req.params.id;
             try{
                 const deleteTask = await TaskModel.findByIdAndDelete(taskId);
-                // Check if a task was actually found and deleted
                 if(!deleteTask){
-                    return res.status(404).json({
-                        message: "Task not found"
-                    });
+                    return res.status(404).json({ message: "Task not found" });
                 }
-                res.status(200).json({ message: "Task deleted successfully", task: deleteTask });
+                res.status(200).json(deleteTask);
             }
             catch (error){
-                // Use 500 for internal server/database errors
-                res.status(500).json({message: "Database error during deletion", error});
+                res.status(500).json({message: "Database error during delete", error});
             }
         });
         
         app.listen(5505 , () => {
-            console.log("Server is running man!");
+            console.log("Server is running on port 5505!");
         });
     }
     catch (error) {
