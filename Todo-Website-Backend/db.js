@@ -1,11 +1,9 @@
 const mongoose = require("mongoose");
 
-const Schema = mongoose.Schema
-const ObjectId = mongoose.Types.ObjectId;
+const Schema = mongoose.Schema;
 
 const TaskSchema = new Schema({
     Task: {type: String},
-    // --- FIX HERE ---
     isCompleted: {
         type: Boolean,
         default: false
