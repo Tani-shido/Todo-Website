@@ -5,7 +5,6 @@ const cors = require('cors');
 const app = express();
 app.use(express.json());
 
-// Your CORS setup is fine, no changes needed here.
 app.use(cors({
   origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -29,10 +28,9 @@ async function Main(){
             }
             try{
                 const todoTask = await TaskModel.create({
-                    Task: inputVal
+                    Task: inputVal,
+                    isCompleted: false // This is correct, new tasks are not complete
                 });
-                // --- FIX HERE ---
-                // Simply return the created task object.
                 return res.status(200).json(todoTask);
             }catch(error){
                 console.error("Database error:", error);
@@ -40,10 +38,10 @@ async function Main(){
             }
         });
 
-        // The /todos route was already correct, no changes needed.
         app.get("/todos", async (req, res) =>{
             try{
-                const show = await TaskModel.find({});
+                // Sort by creation date to show newest first
+                const show = await TaskModel.find({}).sort({ createdAt: -1 });
                 res.status(200).json(show);
             }catch (error){
                 console.error("Database error:", error);
@@ -51,17 +49,18 @@ async function Main(){
             }
         });
 
+        // --- CHANGED: Improved Update Route ---
         app.put("/update/:id", async(req,res) => {
             const taskId = req.params.id;
-            const updatedTask = req.body;
+            const updatedData = req.body; // e.g., { isCompleted: true }
             try{
-                const updatingTask = await TaskModel.findByIdAndUpdate(taskId, updatedTask, { new: true }); // added {new: true} to get the updated document back
+                // { new: true } ensures the updated document is returned
+                const updatingTask = await TaskModel.findByIdAndUpdate(taskId, updatedData, { new: true });
                 if(!updatingTask){
                     return res.status(404).json({
                         message: "Task not found"
                     });
                 }
-                // --- FIX HERE ---
                 res.status(200).json(updatingTask);
             }
             catch (error){
@@ -70,20 +69,22 @@ async function Main(){
             }
         });
 
+        // --- CHANGED: Improved Delete Route ---
         app.delete("/delete/:id" , async (req, res) => {
             const taskId = req.params.id;
             try{
                 const deleteTask = await TaskModel.findByIdAndDelete(taskId);
-                if(!deleteTask){ // <-- FIX: Check if the task was actually found and deleted
-                    return res.status(404).json({ // <-- FIX: Use 404 for "not found"
+                // Check if a task was actually found and deleted
+                if(!deleteTask){
+                    return res.status(404).json({
                         message: "Task not found"
                     });
                 }
-                // --- FIX HERE ---
-                res.status(200).json({ message: "Task successfully deleted", deletedTask: deleteTask });
+                res.status(200).json({ message: "Task deleted successfully", task: deleteTask });
             }
             catch (error){
-                res.status(500).json({message: "Database error: ", error}); // <-- FIX: Use 500 for server errors
+                // Use 500 for internal server/database errors
+                res.status(500).json({message: "Database error during deletion", error});
             }
         });
         
@@ -92,7 +93,7 @@ async function Main(){
         });
     }
     catch (error) {
-        console.error("Could not start the server:", error);
+    console.error("Could not start the server:", error);
     }
 }
 Main();
