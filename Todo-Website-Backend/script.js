@@ -13,7 +13,7 @@ app.use(cors({
 
 async function Main(){
     try{
-        await mongoose.connect("mongodb+srv://shikaridota777:ZClPvfWjJINgzaFN@cluster0.12wqhve.mongodb.net/Todo-Website");
+        await mongoose.connect("MONGO_URL");
         console.log("MongoDB server connected sucessfully!");
 
         const { TaskModel } = require("./db");
